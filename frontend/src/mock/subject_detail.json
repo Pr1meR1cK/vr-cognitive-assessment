@@ -1,0 +1,40 @@
+{
+  "subject_id": "ATH010001",
+  "scale_scores": {
+    "MMSE": 25,
+    "MOCA": 25,
+    "CDR_global": 0.5,
+    "CDR_SB": 1,
+    "HIS": 1
+  },
+  "vr_summary": {
+    "grid4_success_rate": 0.8,
+    "grid9_success_rate": 0.6,
+    "grid4_wrong_pickup_rate": 0.1,
+    "grid9_wrong_pickup_rate": 0.2,
+    "grid4_map_ratio": 0.15,
+    "grid9_map_ratio": 0.28,
+    "grid4_speed_mean": 12.5,
+    "grid9_speed_mean": 10.2,
+    "grid4_path_distance": 3420,
+    "grid9_path_distance": 5100,
+    "grid4_stop_ratio": 0.12,
+    "grid9_stop_ratio": 0.25,
+    "grid4_success_time_mean": 145,
+    "grid9_success_time_mean": 210,
+    "grid4_duration": 480,
+    "grid9_duration": 720
+  },
+  "risk": {
+    "probability": 0.72,
+    "score": 72,
+    "level": "中高风险"
+  },
+  "explanations": [
+    "九宫格成功率低于样本均值",
+    "错误接客率较高",
+    "地图查看时间占比较高",
+    "停车比例高于样本均值",
+    "九宫格相较四宫格表现下降明显"
+  ]
+}

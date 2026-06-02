@@ -1,0 +1,52 @@
+[
+  {
+    "subject_id": "ATH010001",
+    "MMSE": 25,
+    "MOCA": 25,
+    "CDR_global": 0.5,
+    "CDR_SB": 1,
+    "HIS": 1,
+    "risk_probability": 0.72,
+    "risk_level": "中高风险"
+  },
+  {
+    "subject_id": "ATH010002",
+    "MMSE": 28,
+    "MOCA": 27,
+    "CDR_global": 0,
+    "CDR_SB": 0,
+    "HIS": 2,
+    "risk_probability": 0.15,
+    "risk_level": "低风险"
+  },
+  {
+    "subject_id": "ATH010003",
+    "MMSE": 22,
+    "MOCA": 21,
+    "CDR_global": 1,
+    "CDR_SB": 4,
+    "HIS": 3,
+    "risk_probability": 0.85,
+    "risk_level": "高风险"
+  },
+  {
+    "subject_id": "ATH010004",
+    "MMSE": 30,
+    "MOCA": 29,
+    "CDR_global": 0,
+    "CDR_SB": 0,
+    "HIS": 0,
+    "risk_probability": 0.05,
+    "risk_level": "低风险"
+  },
+  {
+    "subject_id": "ATH010005",
+    "MMSE": 26,
+    "MOCA": 24,
+    "CDR_global": 0.5,
+    "CDR_SB": 2,
+    "HIS": 1,
+    "risk_probability": 0.45,
+    "risk_level": "中风险"
+  }
+]

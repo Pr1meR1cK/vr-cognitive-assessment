@@ -1,0 +1,33 @@
+{
+  "model_name": "Logistic Regression (L1/L2)",
+  "target": "MOCA < 26",
+  "cv_method": "留一法交叉验证 (Leave-One-Out)",
+  "metrics": {
+    "auc": 0.78,
+    "accuracy": 0.73,
+    "sensitivity": 0.80,
+    "specificity": 0.65,
+    "f1": 0.76,
+    "precision": 0.72,
+    "cv_mean_auc": 0.75,
+    "cv_std_auc": 0.08
+  },
+  "selected_features": [
+    "grid4_wrong_pickup_rate",
+    "grid4_map_ratio",
+    "grid9_speed_mean",
+    "overall_success_rate",
+    "grid4_path_distance",
+    "grid9_stop_ratio"
+  ],
+  "feature_importance": [
+    {"feature": "grid4_wrong_pickup_rate", "label": "四宫格错误接客率", "coefficient": -1.82},
+    {"feature": "grid4_map_ratio", "label": "四宫格地图查看占比", "coefficient": -1.35},
+    {"feature": "grid9_speed_mean", "label": "九宫格平均速度", "coefficient": 0.98},
+    {"feature": "overall_success_rate", "label": "总体成功率", "coefficient": -0.87},
+    {"feature": "grid4_path_distance", "label": "四宫格路径距离", "coefficient": -0.72},
+    {"feature": "grid9_stop_ratio", "label": "九宫格停车比例", "coefficient": 0.65}
+  ],
+  "training_date": "2026-06-01",
+  "sample_size": 37
+}

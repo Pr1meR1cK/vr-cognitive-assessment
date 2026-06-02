@@ -1,0 +1,92 @@
+[
+  {
+    "target": "MMSE",
+    "feature": "grid4_path_distance",
+    "feature_label": "四宫格路径距离",
+    "n": 21,
+    "pearson_r": -0.42,
+    "spearman_r": -0.38,
+    "p_value": 0.045,
+    "significant": true
+  },
+  {
+    "target": "MMSE",
+    "feature": "grid4_map_ratio",
+    "feature_label": "四宫格地图查看占比",
+    "n": 21,
+    "pearson_r": -0.35,
+    "spearman_r": -0.31,
+    "p_value": 0.08,
+    "significant": false
+  },
+  {
+    "target": "MOCA",
+    "feature": "grid4_wrong_pickup_rate",
+    "feature_label": "四宫格错误接客率",
+    "n": 21,
+    "pearson_r": -0.576,
+    "spearman_r": -0.354,
+    "p_value": 0.004,
+    "significant": true
+  },
+  {
+    "target": "MOCA",
+    "feature": "grid9_speed_mean",
+    "feature_label": "九宫格平均速度",
+    "n": 20,
+    "pearson_r": 0.41,
+    "spearman_r": 0.37,
+    "p_value": 0.06,
+    "significant": false
+  },
+  {
+    "target": "MOCA",
+    "feature": "grid4_map_ratio",
+    "feature_label": "四宫格地图查看占比",
+    "n": 21,
+    "pearson_r": -0.38,
+    "spearman_r": -0.33,
+    "p_value": 0.07,
+    "significant": false
+  },
+  {
+    "target": "CDR_global",
+    "feature": "overall_success_rate",
+    "feature_label": "总体成功率",
+    "n": 23,
+    "pearson_r": -0.52,
+    "spearman_r": -0.48,
+    "p_value": 0.008,
+    "significant": true
+  },
+  {
+    "target": "CDR_global",
+    "feature": "grid4_count_ep_timeout",
+    "feature_label": "四宫格超时次数",
+    "n": 21,
+    "pearson_r": 0.46,
+    "spearman_r": 0.42,
+    "p_value": 0.025,
+    "significant": true
+  },
+  {
+    "target": "HIS",
+    "feature": "grid9_stop_ratio",
+    "feature_label": "九宫格停车比例",
+    "n": 20,
+    "pearson_r": 0.39,
+    "spearman_r": 0.35,
+    "p_value": 0.07,
+    "significant": false
+  },
+  {
+    "target": "HIS",
+    "feature": "grid9_fail_time_std",
+    "feature_label": "九宫格失败时间波动",
+    "n": 15,
+    "pearson_r": 0.43,
+    "spearman_r": 0.40,
+    "p_value": 0.08,
+    "significant": false
+  }
+]
