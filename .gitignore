@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Claude (project-level settings should not be shared)
+.claude/
+.claude/telemetry/
+.claude/cache/
+.claude/backups/
+.claude/file-history/
+.claude/plans/
+.claude/tasks/
+.claude/daemon.log
+.claude/.last-*
+.claude/shell-snapshots/
+.claude/session-env/
+.claude/ide/
+
+# Data (large files)
+exe_release_*/
+MMSE_MoCA/
+
+# Outputs
+outputs/
+
+# Node (frontend)
+node_modules/
+dist/

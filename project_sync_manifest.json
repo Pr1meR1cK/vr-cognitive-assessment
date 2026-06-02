@@ -1,0 +1,431 @@
+{
+  "manifest_version": "1.0",
+  "generated_date": "2026-06-01",
+  "project_name": "基于VR接客任务的认知评估系统",
+  "project_short_name": "VR Cognitive Assessment System",
+  "project_goal": "构建一个Web网页应用，基于被试在VR四宫格/九宫格社区接客任务中的行为日志，结合MMSE、MoCA、CDR、HIS等传统量表，完成数据清洗、特征提取、相关性分析、认知风险建模、个体评估展示和报告导出。",
+  "current_stage": "已完成VR日志与量表数据的清洗、匹配、特征提取和相关性分析；模型训练脚本为草稿，尚未正式训练和验证；Web应用尚未开始正式搭建。",
+  "recommended_architecture": {
+    "frontend": "Vue或React Web前端",
+    "backend": "Python FastAPI后端",
+    "data_analysis": "Python脚本和后端服务模块",
+    "collaboration": "GitHub Desktop + GitHub分支协作",
+    "principle": "前端固定一人开发，后端拆分为数据后端与算法后端；三人通过约定JSON接口并行开发。"
+  },
+  "data_sources": {
+    "vr_logs": {
+      "path": "exe_release_20260415/log",
+      "description": "每个被试一个文件夹，文件夹内包含四宫格/九宫格VR接客任务日志。",
+      "subject_folder_example": "ATH010001VR",
+      "log_file_examples": [
+        "九宫格20260429160051_log_1.log",
+        "四宫格20260429155013_log_1.log",
+        "四宫格20260429155844_log_2.log"
+      ],
+      "log_line_format": "relative_time|real_time|event_type|json_payload",
+      "important_events": [
+        "BASE_INFO",
+        "EP_START",
+        "EP_END",
+        "EP_SUCCESS",
+        "EP_FAIL",
+        "EP_TIMEOUT",
+        "PICKUP_OK",
+        "PICKUP_WRONG",
+        "MAP_ON",
+        "MAP_OFF",
+        "STOP_START",
+        "STOP_END",
+        "BRAKE_ON",
+        "BRAKE_OFF",
+        "ATT_START",
+        "ATT_RESET",
+        "ZONE_ENTER",
+        "ZONE_EXIT",
+        "GATE_IN",
+        "GATE_OUT"
+      ]
+    },
+    "scale_files": {
+      "path": "MMSE_MoCA",
+      "description": "每个被试一个Excel量表文件。",
+      "file_example": "_____ATHENA010001_____.xlsx",
+      "sheets_used": [
+        "量表总分"
+      ],
+      "scores_extracted": [
+        "MMSE",
+        "MOCA",
+        "HIS",
+        "CDR_global",
+        "CDR_SB"
+      ]
+    }
+  },
+  "subject_id_rule": {
+    "description": "VR日志文件夹和量表文件名中的编号会统一成ATH六位数字。",
+    "examples": [
+      {
+        "raw": "ATH010001VR",
+        "normalized": "ATH010001"
+      },
+      {
+        "raw": "_____ATHENA010001_____.xlsx",
+        "normalized": "ATH010001"
+      }
+    ]
+  },
+  "task_interpretation": {
+    "grid4": {
+      "name": "四宫格/田字格社区接客任务",
+      "meaning": "相对简单的VR社区空间接客任务。",
+      "feature_prefix": "grid4_"
+    },
+    "grid9": {
+      "name": "九宫格社区接客任务",
+      "meaning": "相对复杂的VR社区空间接客任务。",
+      "feature_prefix": "grid9_"
+    },
+    "overall": {
+      "name": "总体VR任务表现",
+      "meaning": "所有有效四宫格和九宫格日志合并后的总体行为特征。",
+      "feature_prefix": "overall_"
+    },
+    "continued_log_rule": "_log_1、_log_2、_log_3等不是独立任务，而是同一次任务或同类任务的续存日志。当前处理方式是按时间顺序读取，优先根据文件名和日志内部配置识别任务；若续存文件缺少任务配置，则继承前一个已知任务类型；同一被试同一任务类型合并后再提取特征。",
+    "unknown_rule": "无法识别且为空的日志已从最终分析中剔除，不进入特征计算。"
+  },
+  "implemented_outputs": {
+    "latest_correlation_workbook": "outputs/correlation_analysis/correlation_analysis_20260601_144050.xlsx",
+    "output_folder": "outputs/correlation_analysis",
+    "files": {
+      "scale_scores.csv": "每名被试的MMSE、MoCA、HIS、CDR-global、CDR-SB。",
+      "vr_features.csv": "每名被试的VR行为特征。",
+      "log_manifest.csv": "每个有效VR日志的任务归类结果；最终版本只保留grid4和grid9。",
+      "merged_dataset.csv": "量表和VR特征按subject_id合并后的总表。",
+      "correlations.csv": "所有相关性结果。",
+      "correlations_reliable_n10.csv": "有效样本数不少于10的相关性结果。"
+    },
+    "latest_counts": {
+      "scale_subjects": 37,
+      "vr_subjects": 37,
+      "matched_subjects": 37,
+      "valid_vr_logs": 133,
+      "grid4_logs": 59,
+      "grid9_logs": 74,
+      "continued_logs_inherited": 15,
+      "unknown_logs_in_final_manifest": 0
+    }
+  },
+  "implemented_scripts": {
+    "scripts/analyze_vr_scale_correlation.py": {
+      "status": "已实现并已运行验证",
+      "purpose": "读取VR日志和量表文件，完成任务识别、续存日志合并、特征提取、量表匹配和相关性分析。",
+      "run_command": "& 'C:\\Users\\Administrator\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe' scripts\\analyze_vr_scale_correlation.py"
+    },
+    "scripts/train_cognitive_model.py": {
+      "status": "草稿，尚未正式训练和验证",
+      "purpose": "计划用于训练MoCA<26小样本认知风险模型；用户已暂停训练，后续需要B成员继续验证。",
+      "target": "MOCA < 26"
+    },
+    "scripts/README_correlation_analysis.md": {
+      "status": "已实现",
+      "purpose": "说明相关性分析脚本的输入、输出和注意事项。"
+    }
+  },
+  "feature_groups": {
+    "task_performance": [
+      "success_rate",
+      "count_ep_success",
+      "count_ep_fail",
+      "count_ep_timeout",
+      "count_pickup_ok",
+      "count_pickup_wrong",
+      "wrong_pickup_rate"
+    ],
+    "time_efficiency": [
+      "duration",
+      "episode_duration_mean",
+      "episode_duration_std",
+      "success_time_mean",
+      "success_time_std",
+      "fail_time_mean",
+      "fail_time_std"
+    ],
+    "navigation_and_map": [
+      "count_map_on",
+      "map_view_duration",
+      "map_count_per_min",
+      "map_ratio",
+      "path_distance",
+      "count_zone_enter",
+      "count_zone_exit"
+    ],
+    "driving_control": [
+      "speed_mean",
+      "speed_std",
+      "speed_max",
+      "stationary_ratio",
+      "count_brake_on",
+      "brake_count_per_min",
+      "throttle_mean",
+      "abs_steer_mean",
+      "abs_steer_std"
+    ],
+    "attention_and_stop": [
+      "count_att_start",
+      "count_att_reset",
+      "count_stop_start",
+      "stop_duration",
+      "stop_ratio"
+    ]
+  },
+  "main_findings_so_far": {
+    "MMSE": "较相关的VR指标包括四宫格路径距离、四宫格接客停留时间波动、四宫格成功完成时间波动、四宫格地图查看时间占比。",
+    "MOCA": "较相关的VR指标包括四宫格错误接客率、四宫格油门均值、四宫格地图查看占比、九宫格平均速度和速度波动。",
+    "CDR": "较相关的VR指标偏向任务成败，包括四宫格超时次数、四宫格成功率、总体成功率、总体成功次数和总体正确接客次数。",
+    "HIS": "较相关的VR指标偏向九宫格过程表现，包括九宫格失败时间波动、九宫格停车比例、九宫格任务完成次数和九宫格停止时长。"
+  },
+  "team_roles": {
+    "A": {
+      "title": "后端数据处理负责人",
+      "responsibility_summary": "负责原始VR日志和量表数据进入系统，并转换成可分析的被试级特征表。",
+      "owned_paths": [
+        "backend/api/data_api.py",
+        "backend/services/log_parser.py",
+        "backend/services/scale_loader.py",
+        "backend/services/feature_extractor.py",
+        "backend/services/dataset_builder.py",
+        "scripts/analyze_vr_scale_correlation.py",
+        "outputs/correlation_analysis"
+      ],
+      "main_tasks": [
+        "解析VR日志",
+        "识别四宫格/九宫格任务",
+        "合并_log_1/_log_2续存日志",
+        "剔除空日志",
+        "读取量表Excel",
+        "统一被试ID",
+        "提取VR行为特征",
+        "生成merged_dataset.csv",
+        "实现数据相关API"
+      ],
+      "api_endpoints": [
+        "POST /api/data/analyze",
+        "GET /api/data/summary",
+        "GET /api/data/log-manifest",
+        "GET /api/data/features",
+        "GET /api/subjects"
+      ]
+    },
+    "B": {
+      "title": "后端算法模型负责人",
+      "responsibility_summary": "负责相关性分析、特征筛选、风险模型训练、模型评估和个体风险解释。",
+      "owned_paths": [
+        "backend/api/model_api.py",
+        "backend/api/report_api.py",
+        "backend/services/correlation.py",
+        "backend/services/model_trainer.py",
+        "backend/services/predictor.py",
+        "backend/services/risk_scoring.py",
+        "scripts/train_cognitive_model.py",
+        "outputs/model_training"
+      ],
+      "main_tasks": [
+        "读取merged_dataset.csv",
+        "完成相关性分析",
+        "筛选候选特征",
+        "构建MoCA<26风险标签",
+        "训练小样本模型",
+        "进行留一法交叉验证",
+        "输出模型指标",
+        "输出风险概率和风险等级",
+        "实现模型相关API"
+      ],
+      "api_endpoints": [
+        "GET /api/correlation",
+        "POST /api/model/train",
+        "GET /api/model/metrics",
+        "GET /api/model/features",
+        "GET /api/subjects/{subject_id}/risk",
+        "GET /api/reports/{subject_id}"
+      ]
+    },
+    "C": {
+      "title": "前端与系统集成负责人",
+      "responsibility_summary": "负责Web前端页面、mock数据、接口调用、可视化展示、报告导出入口和系统演示。",
+      "owned_paths": [
+        "frontend/src/pages",
+        "frontend/src/components",
+        "frontend/src/api",
+        "frontend/src/mock",
+        "frontend/package.json",
+        "frontend/README.md"
+      ],
+      "main_tasks": [
+        "搭建前端项目",
+        "建立mock JSON",
+        "实现数据导入页",
+        "实现数据概览页",
+        "实现日志归类页",
+        "实现相关性分析页",
+        "实现模型评估页",
+        "实现个体评估页",
+        "实现报告导出入口",
+        "与A/B接口联调"
+      ],
+      "pages": [
+        "数据导入页",
+        "数据概览页",
+        "日志归类页",
+        "群体相关性分析页",
+        "模型评估页",
+        "个体评估页",
+        "报告导出页"
+      ]
+    }
+  },
+  "github_desktop_workflow": {
+    "branch_names": {
+      "A": "feature/data-backend",
+      "B": "feature/model-backend",
+      "C": "feature/frontend-ui"
+    },
+    "daily_start": [
+      "打开GitHub Desktop",
+      "切换到自己的功能分支",
+      "点击Fetch origin",
+      "确认本地分支是最新状态",
+      "运行项目或脚本，确认没有基础错误后再开发"
+    ],
+    "commit_rules": [
+      "不要直接在main分支开发",
+      "每个人只提交自己负责目录下的文件",
+      "小功能完成后及时commit",
+      "commit message写清楚模块和功能",
+      "push到远端后通过Pull Request合并",
+      "修改接口字段前必须通知另外两人"
+    ],
+    "recommended_commit_message_examples": [
+      "A: add log parser and subject matching",
+      "B: add moca risk model metrics",
+      "C: add subject detail page mock layout"
+    ]
+  },
+  "api_contracts": {
+    "GET /api/data/summary": {
+      "owner": "A",
+      "response_example": {
+        "subject_count": 37,
+        "matched_count": 37,
+        "grid4_log_count": 59,
+        "grid9_log_count": 74,
+        "excluded_log_count": 2
+      }
+    },
+    "GET /api/subjects": {
+      "owner": "A+B",
+      "response_example": [
+        {
+          "subject_id": "ATH010001",
+          "MMSE": 25,
+          "MOCA": 25,
+          "CDR_global": 0.5,
+          "CDR_SB": 1,
+          "HIS": 1,
+          "risk_probability": 0.72,
+          "risk_level": "中风险"
+        }
+      ]
+    },
+    "GET /api/subjects/{subject_id}": {
+      "owner": "A+B",
+      "response_example": {
+        "subject_id": "ATH010001",
+        "scale_scores": {
+          "MMSE": 25,
+          "MOCA": 25,
+          "CDR_global": 0.5,
+          "CDR_SB": 1,
+          "HIS": 1
+        },
+        "vr_summary": {
+          "grid4_success_rate": 0.8,
+          "grid9_success_rate": 0.6,
+          "grid4_wrong_pickup_rate": 0.1,
+          "grid9_wrong_pickup_rate": 0.2,
+          "grid4_map_ratio": 0.15,
+          "grid9_map_ratio": 0.28
+        },
+        "risk": {
+          "probability": 0.72,
+          "score": 72,
+          "level": "中高风险"
+        },
+        "explanations": [
+          "九宫格成功率低于样本均值",
+          "错误接客率较高",
+          "地图查看时间占比较高"
+        ]
+      }
+    },
+    "GET /api/correlation": {
+      "owner": "B",
+      "response_example": [
+        {
+          "target": "MOCA",
+          "feature": "grid4_wrong_pickup_rate",
+          "feature_label": "四宫格错误接客率",
+          "n": 21,
+          "pearson_r": -0.576,
+          "spearman_r": -0.354
+        }
+      ]
+    },
+    "GET /api/model/metrics": {
+      "owner": "B",
+      "response_example": {
+        "auc": 0.78,
+        "accuracy": 0.73,
+        "sensitivity": 0.8,
+        "specificity": 0.65,
+        "f1": 0.76
+      }
+    }
+  },
+  "new_device_setup": {
+    "steps": [
+      "安装GitHub Desktop。",
+      "登录GitHub账号。",
+      "从GitHub Desktop克隆项目仓库到本地。",
+      "切换到自己的功能分支；若不存在则创建。",
+      "确认项目根目录包含README.md、project_sync_manifest.json、team_workflow_github_desktop.html。",
+      "阅读README.md和PROJECT_ONBOARDING.md。",
+      "按自己的角色查看project_sync_manifest.json中的team_roles。",
+      "A/B优先确认Python环境能运行分析脚本；C优先搭建前端并使用mock数据。",
+      "每日开发前Fetch origin，开发后Commit并Push。"
+    ],
+    "important_files_to_read_first": [
+      "PROJECT_ONBOARDING.md",
+      "README.md",
+      "team_workflow_github_desktop.html",
+      "project_sync_manifest.json"
+    ]
+  },
+  "next_steps": [
+    "把现有项目上传到GitHub仓库。",
+    "三人分别创建feature/data-backend、feature/model-backend、feature/frontend-ui分支。",
+    "A把现有分析脚本拆分为FastAPI数据服务模块。",
+    "B验证并完善train_cognitive_model.py，输出模型结果文件和API。",
+    "C用mock JSON搭建前端页面。",
+    "三人按api_contracts字段进行联调。",
+    "完成Web应用演示和个体报告导出。"
+  ],
+  "do_not_forget": [
+    "不要直接在main分支开发。",
+    "接口字段改动必须提前同步。",
+    "C不需要等后端完成，先用mock JSON开发。",
+    "A和B不需要等前端完成，先按约定JSON返回数据。",
+    "模型训练目前尚未正式完成，不能在报告中宣称已有可靠模型性能。",
+    "当前已有的可靠结果是数据清洗、特征提取、量表匹配和相关性分析。"
+  ]
+}

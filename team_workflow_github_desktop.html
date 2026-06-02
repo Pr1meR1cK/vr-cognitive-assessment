@@ -1,0 +1,935 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VR认知评估系统三人协作分工与GitHub Desktop流程</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --paper: #ffffff;
+      --ink: #1f2933;
+      --muted: #5d6b78;
+      --line: #d9e0e7;
+      --blue: #1f6feb;
+      --green: #1a7f37;
+      --orange: #b65c00;
+      --red: #b42318;
+      --soft-blue: #eaf2ff;
+      --soft-green: #eaf7ee;
+      --soft-orange: #fff3e0;
+      --soft-red: #fff0ee;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", Arial, sans-serif;
+      line-height: 1.65;
+    }
+
+    main {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 32px 20px 56px;
+    }
+
+    header {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 28px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: 30px;
+      line-height: 1.25;
+    }
+
+    h2 {
+      margin: 28px 0 12px;
+      font-size: 22px;
+      border-left: 5px solid var(--blue);
+      padding-left: 10px;
+    }
+
+    h3 {
+      margin: 18px 0 8px;
+      font-size: 18px;
+    }
+
+    p {
+      margin: 8px 0;
+    }
+
+    code {
+      background: #eef2f6;
+      border: 1px solid #dde4ec;
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.95em;
+    }
+
+    pre {
+      margin: 10px 0;
+      background: #101828;
+      color: #f8fafc;
+      border-radius: 8px;
+      padding: 14px 16px;
+      overflow-x: auto;
+      line-height: 1.5;
+    }
+
+    pre code {
+      background: transparent;
+      border: 0;
+      color: inherit;
+      padding: 0;
+    }
+
+    section {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 22px 26px;
+      margin-bottom: 18px;
+    }
+
+    ul, ol {
+      margin: 8px 0 12px 22px;
+      padding: 0;
+    }
+
+    li {
+      margin: 4px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 9px 10px;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      background: #f1f5f9;
+      font-weight: 700;
+    }
+
+    .lead {
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      background: #fbfcfe;
+    }
+
+    .card h3 {
+      margin-top: 0;
+    }
+
+    .role-a {
+      border-top: 5px solid var(--green);
+    }
+
+    .role-b {
+      border-top: 5px solid var(--orange);
+    }
+
+    .role-c {
+      border-top: 5px solid var(--blue);
+    }
+
+    .tag {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 2px 9px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-right: 4px;
+    }
+
+    .tag.a {
+      background: var(--soft-green);
+      color: var(--green);
+    }
+
+    .tag.b {
+      background: var(--soft-orange);
+      color: var(--orange);
+    }
+
+    .tag.c {
+      background: var(--soft-blue);
+      color: var(--blue);
+    }
+
+    .warn {
+      background: var(--soft-red);
+      border: 1px solid #ffd5d0;
+      border-left: 5px solid var(--red);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin: 12px 0;
+    }
+
+    .ok {
+      background: var(--soft-green);
+      border: 1px solid #ccebd5;
+      border-left: 5px solid var(--green);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin: 12px 0;
+    }
+
+    .step-list > li {
+      margin-bottom: 10px;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 880px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      header, section {
+        padding: 18px;
+      }
+      h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>VR认知评估系统三人协作分工与 GitHub Desktop 流程</h1>
+    <p class="lead">
+      本文档用于指导 A、B、C 三位成员并行开发一个 Web 版认知评估系统。系统采用前后端分离思路：
+      A 负责后端数据处理，B 负责后端算法模型，C 负责前端页面与系统集成。
+    </p>
+    <p>
+      核心原则：<strong>A 管数据正确，B 管模型合理，C 管系统好用。</strong>
+    </p>
+  </header>
+
+  <section>
+    <h2>1. 项目最终目标</h2>
+    <p>构建一个 Web 网页应用，能够导入 VR 行为日志和量表文件，自动完成数据匹配、特征提取、相关性分析、认知风险预测和个体报告展示。</p>
+    <pre><code>VR日志 + MMSE/MoCA/CDR/HIS量表
+        ↓
+数据清洗与任务识别
+        ↓
+VR行为特征提取
+        ↓
+相关性分析与模型预测
+        ↓
+Web页面展示与报告导出</code></pre>
+  </section>
+
+  <section>
+    <h2>2. 三人总分工</h2>
+    <div class="grid">
+      <div class="card role-a">
+        <h3><span class="tag a">A</span>后端数据处理</h3>
+        <p>负责原始数据进入系统，并变成可分析的特征表。</p>
+        <ul>
+          <li>VR 日志解析</li>
+          <li>四宫格 / 九宫格识别</li>
+          <li>续存日志合并</li>
+          <li>量表 Excel 读取</li>
+          <li>被试 ID 匹配</li>
+          <li>行为特征提取</li>
+        </ul>
+      </div>
+      <div class="card role-b">
+        <h3><span class="tag b">B</span>后端算法模型</h3>
+        <p>负责认知评估算法、模型训练和个体风险预测。</p>
+        <ul>
+          <li>相关性分析</li>
+          <li>候选特征筛选</li>
+          <li>MoCA 风险模型</li>
+          <li>模型交叉验证</li>
+          <li>特征重要性</li>
+          <li>风险等级解释</li>
+        </ul>
+      </div>
+      <div class="card role-c">
+        <h3><span class="tag c">C</span>前端与系统集成</h3>
+        <p>负责 Web 页面、交互、可视化和最终演示效果。</p>
+        <ul>
+          <li>前端项目搭建</li>
+          <li>页面路由</li>
+          <li>接口调用</li>
+          <li>图表展示</li>
+          <li>个体评估页面</li>
+          <li>报告导出入口</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>3. 推荐目录结构</h2>
+    <pre><code>project/
+  backend/
+    main.py
+    schemas.py
+    config.py
+    paths.py
+    api/
+      data_api.py          # A负责
+      model_api.py         # B负责
+      report_api.py        # B/C协作
+    services/
+      log_parser.py        # A负责
+      scale_loader.py      # A负责
+      feature_extractor.py # A负责
+      dataset_builder.py   # A负责
+      correlation.py       # B负责
+      model_trainer.py     # B负责
+      predictor.py         # B负责
+      risk_scoring.py      # B负责
+
+  frontend/
+    src/
+      pages/               # C负责
+      components/          # C负责
+      api/                 # C负责
+      mock/                # C负责，先放假数据
+
+  scripts/
+    analyze_vr_scale_correlation.py
+    train_cognitive_model.py
+
+  outputs/
+    correlation_analysis/
+    model_training/
+    reports/
+
+  README.md</code></pre>
+  </section>
+
+  <section>
+    <h2>4. GitHub Desktop 协作流程</h2>
+    <h3>4.1 第一次加入项目</h3>
+    <ol class="step-list">
+      <li>组长在 GitHub 创建仓库，例如 <code>vr-cognitive-assessment</code>。</li>
+      <li>组长把 A、B、C 都添加为仓库 Collaborator。</li>
+      <li>每个人打开 GitHub Desktop，选择 <strong>File → Clone repository</strong>。</li>
+      <li>选择该项目仓库，克隆到本地统一位置。</li>
+      <li>确认当前分支是 <code>main</code>，点击 <strong>Fetch origin</strong> 拉取最新内容。</li>
+    </ol>
+
+    <h3>4.2 每个人创建自己的开发分支</h3>
+    <table>
+      <thead>
+      <tr>
+        <th>成员</th>
+        <th>建议分支名</th>
+        <th>用途</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td>A</td>
+        <td><code>feature/data-backend</code></td>
+        <td>数据处理、日志解析、特征提取接口</td>
+      </tr>
+      <tr>
+        <td>B</td>
+        <td><code>feature/model-backend</code></td>
+        <td>相关性分析、模型训练、风险预测接口</td>
+      </tr>
+      <tr>
+        <td>C</td>
+        <td><code>feature/frontend-ui</code></td>
+        <td>前端页面、mock 数据、接口联调</td>
+      </tr>
+      </tbody>
+    </table>
+    <p>GitHub Desktop 操作：点击顶部分支下拉框 → <strong>New Branch</strong> → 输入自己的分支名 → <strong>Create Branch</strong>。</p>
+
+    <h3>4.3 每天开发前</h3>
+    <ol>
+      <li>打开 GitHub Desktop。</li>
+      <li>切换到自己的分支。</li>
+      <li>点击 <strong>Fetch origin</strong>。</li>
+      <li>如果 main 有更新，先把 main 的最新内容合到自己的分支。</li>
+      <li>确认项目能正常运行后再开始写代码。</li>
+    </ol>
+
+    <h3>4.4 每次提交代码</h3>
+    <ol>
+      <li>只提交自己负责目录下的文件。</li>
+      <li>在 GitHub Desktop 左下角填写 Summary。</li>
+      <li>点击 <strong>Commit to 当前分支</strong>。</li>
+      <li>点击 <strong>Push origin</strong> 上传到 GitHub。</li>
+    </ol>
+    <p>提交信息建议：</p>
+    <pre><code>A: add log parser and subject matching
+B: add moca risk model metrics
+C: add subject detail page mock layout</code></pre>
+
+    <div class="warn">
+      <strong>注意：</strong>不要直接在 <code>main</code> 分支上开发。每个人都在自己的功能分支工作，确认无误后再合并。
+    </div>
+  </section>
+
+  <section>
+    <h2>5. A 的详细步骤：后端数据处理</h2>
+    <h3>5.1 负责目录</h3>
+    <pre><code>backend/api/data_api.py
+backend/services/log_parser.py
+backend/services/scale_loader.py
+backend/services/feature_extractor.py
+backend/services/dataset_builder.py
+outputs/correlation_analysis/
+scripts/analyze_vr_scale_correlation.py</code></pre>
+
+    <h3>5.2 具体任务</h3>
+    <ol class="step-list">
+      <li>实现 VR 日志解析，读取每一行中的时间、事件类型和 JSON 参数。</li>
+      <li>识别四宫格、九宫格任务。</li>
+      <li>处理 <code>_log_1</code>、<code>_log_2</code> 等续存日志，将同一次任务合并。</li>
+      <li>剔除空日志和无法识别的无效日志。</li>
+      <li>读取 <code>MMSE_MoCA</code> 文件夹中的 Excel 量表。</li>
+      <li>统一被试编号，例如 <code>ATH010001VR</code> 和 <code>ATHENA010001</code> 都转成 <code>ATH010001</code>。</li>
+      <li>提取 VR 行为特征，包括成功率、错误率、地图查看、路径距离、停车比例、速度和刹车等。</li>
+      <li>生成标准输出表。</li>
+    </ol>
+
+    <h3>5.3 A 的输出文件</h3>
+    <table>
+      <thead>
+      <tr>
+        <th>文件</th>
+        <th>说明</th>
+        <th>给谁使用</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td><code>log_manifest.csv</code></td>
+        <td>每个原始日志的任务归类结果</td>
+        <td>C 展示数据质量</td>
+      </tr>
+      <tr>
+        <td><code>scale_scores.csv</code></td>
+        <td>每个被试的 MMSE、MoCA、CDR、HIS</td>
+        <td>B 建模，C 展示</td>
+      </tr>
+      <tr>
+        <td><code>vr_features.csv</code></td>
+        <td>每个被试的 VR 行为特征</td>
+        <td>B 建模</td>
+      </tr>
+      <tr>
+        <td><code>merged_dataset.csv</code></td>
+        <td>量表和 VR 特征合并后的总表</td>
+        <td>B 的核心输入</td>
+      </tr>
+      </tbody>
+    </table>
+
+    <h3>5.4 A 负责的接口</h3>
+    <pre><code>POST /api/data/analyze
+GET  /api/data/summary
+GET  /api/data/log-manifest
+GET  /api/data/features
+GET  /api/subjects</code></pre>
+
+    <h3>5.5 A 给前端的示例 JSON</h3>
+    <pre><code>{
+  "subject_count": 37,
+  "matched_count": 37,
+  "grid4_log_count": 59,
+  "grid9_log_count": 74,
+  "excluded_log_count": 2
+}</code></pre>
+
+    <h3>5.6 A 的完成标准</h3>
+    <ul>
+      <li>37 名 VR 被试和 37 名量表被试能成功匹配。</li>
+      <li>四宫格和九宫格日志数量统计正确。</li>
+      <li>空日志不进入特征计算。</li>
+      <li><code>merged_dataset.csv</code> 字段稳定，B 可以直接读取。</li>
+      <li>接口返回 JSON 格式和 C 约定一致。</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>6. B 的详细步骤：后端算法模型</h2>
+    <h3>6.1 负责目录</h3>
+    <pre><code>backend/api/model_api.py
+backend/api/report_api.py
+backend/services/correlation.py
+backend/services/model_trainer.py
+backend/services/predictor.py
+backend/services/risk_scoring.py
+outputs/model_training/
+scripts/train_cognitive_model.py</code></pre>
+
+    <h3>6.2 具体任务</h3>
+    <ol class="step-list">
+      <li>读取 A 输出的 <code>merged_dataset.csv</code>。</li>
+      <li>完成 VR 行为特征与 MMSE、MoCA、CDR、HIS 的相关性分析。</li>
+      <li>筛选候选特征，优先使用样本量充足且有认知解释意义的指标。</li>
+      <li>构建第一版风险标签，例如 <code>MoCA &lt; 26</code> 记为认知风险。</li>
+      <li>训练小样本模型，例如逻辑回归、Ridge 或 Lasso。</li>
+      <li>使用留一法交叉验证评估模型。</li>
+      <li>输出准确率、AUC、灵敏度、特异度、F1 等指标。</li>
+      <li>生成每名被试的风险概率、风险等级和关键异常特征。</li>
+    </ol>
+
+    <h3>6.3 B 的输出文件</h3>
+    <table>
+      <thead>
+      <tr>
+        <th>文件</th>
+        <th>说明</th>
+        <th>给谁使用</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td><code>correlations_reliable_n10.csv</code></td>
+        <td>有效样本数不少于 10 的相关性结果</td>
+        <td>C 做群体分析页面</td>
+      </tr>
+      <tr>
+        <td><code>model_predictions.csv</code></td>
+        <td>每名被试的风险预测结果</td>
+        <td>C 做个体评估页面</td>
+      </tr>
+      <tr>
+        <td><code>model_metrics.csv</code></td>
+        <td>模型性能指标</td>
+        <td>C 做模型评估页面</td>
+      </tr>
+      <tr>
+        <td><code>feature_importance.csv</code></td>
+        <td>重要特征及解释方向</td>
+        <td>C 做图表和解释</td>
+      </tr>
+      </tbody>
+    </table>
+
+    <h3>6.4 B 负责的接口</h3>
+    <pre><code>GET  /api/correlation
+POST /api/model/train
+GET  /api/model/metrics
+GET  /api/model/features
+GET  /api/subjects/{subject_id}/risk
+GET  /api/reports/{subject_id}</code></pre>
+
+    <h3>6.5 B 给前端的示例 JSON</h3>
+    <pre><code>{
+  "subject_id": "ATH010001",
+  "risk_probability": 0.72,
+  "risk_score": 72,
+  "risk_level": "中高风险",
+  "predicted_label": "疑似认知下降",
+  "top_features": [
+    {
+      "feature": "grid4_wrong_pickup_rate",
+      "label": "四宫格错误接客率",
+      "direction": "偏高",
+      "explanation": "错误接客率较高，可能提示任务执行或空间判断困难"
+    }
+  ]
+}</code></pre>
+
+    <h3>6.6 B 的完成标准</h3>
+    <ul>
+      <li>能基于 <code>merged_dataset.csv</code> 训练第一版小模型。</li>
+      <li>能输出每名被试的风险概率和风险等级。</li>
+      <li>能给出模型评估指标。</li>
+      <li>能解释主要影响特征，而不是只输出一个黑箱分数。</li>
+      <li>接口返回 JSON 格式和 C 约定一致。</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>7. C 的详细步骤：前端与系统集成</h2>
+    <h3>7.1 负责目录</h3>
+    <pre><code>frontend/src/pages/
+frontend/src/components/
+frontend/src/api/
+frontend/src/mock/
+frontend/package.json
+frontend/README.md</code></pre>
+
+    <h3>7.2 具体任务</h3>
+    <ol class="step-list">
+      <li>搭建前端项目，推荐 Vue 或 React。</li>
+      <li>先建立 mock JSON 文件，不等待后端完成。</li>
+      <li>完成基础页面路由和导航。</li>
+      <li>实现数据导入页。</li>
+      <li>实现数据概览页，展示被试数、匹配数、四宫格/九宫格日志数。</li>
+      <li>实现日志归类页，展示 <code>log_manifest</code>。</li>
+      <li>实现相关性分析页，展示重要相关指标。</li>
+      <li>实现模型评估页，展示 AUC、准确率、灵敏度、特异度。</li>
+      <li>实现个体评估页，展示单个被试的量表、VR 表现、风险评分和解释。</li>
+      <li>实现报告导出按钮或下载入口。</li>
+      <li>后端接口完成后，将 mock 数据切换为真实接口。</li>
+    </ol>
+
+    <h3>7.3 C 需要的页面</h3>
+    <table>
+      <thead>
+      <tr>
+        <th>页面</th>
+        <th>内容</th>
+        <th>依赖谁的数据</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td>数据导入页</td>
+        <td>选择 VR 日志和量表目录，启动分析</td>
+        <td>A</td>
+      </tr>
+      <tr>
+        <td>数据概览页</td>
+        <td>被试数、匹配数、四宫格/九宫格日志数</td>
+        <td>A</td>
+      </tr>
+      <tr>
+        <td>群体分析页</td>
+        <td>相关性排名、量表分布、特征分布</td>
+        <td>B</td>
+      </tr>
+      <tr>
+        <td>模型评估页</td>
+        <td>AUC、准确率、灵敏度、特异度、重要特征</td>
+        <td>B</td>
+      </tr>
+      <tr>
+        <td>个体评估页</td>
+        <td>某个被试的风险分数、关键异常指标、VR表现</td>
+        <td>A + B</td>
+      </tr>
+      </tbody>
+    </table>
+
+    <h3>7.4 C 先写的 mock 文件</h3>
+    <pre><code>frontend/src/mock/summary.json
+frontend/src/mock/subjects.json
+frontend/src/mock/subject_detail.json
+frontend/src/mock/correlation.json
+frontend/src/mock/model_metrics.json</code></pre>
+
+    <h3>7.5 C 的完成标准</h3>
+    <ul>
+      <li>没有后端时，前端能用 mock 数据完整演示。</li>
+      <li>有后端后，能切换到真实接口。</li>
+      <li>页面能清楚展示数据概览、相关性、模型评估和个体评估。</li>
+      <li>个体评估页面能让用户理解风险原因。</li>
+      <li>最终系统适合答辩演示。</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>8. 三人并行开发计划</h2>
+    <table>
+      <thead>
+      <tr>
+        <th>阶段</th>
+        <th>A 数据后端</th>
+        <th>B 算法后端</th>
+        <th>C 前端</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td>第 1 阶段：接口约定</td>
+        <td>确定数据接口字段</td>
+        <td>确定模型接口字段</td>
+        <td>根据接口制作 mock JSON</td>
+      </tr>
+      <tr>
+        <td>第 2 阶段：基础开发</td>
+        <td>完成日志解析、量表读取、数据概览接口</td>
+        <td>完成相关性分析、模型输出格式</td>
+        <td>完成页面框架、路由和 mock 展示</td>
+      </tr>
+      <tr>
+        <td>第 3 阶段：真实数据接入</td>
+        <td>输出真实 <code>merged_dataset.csv</code></td>
+        <td>读取真实数据，输出预测结果</td>
+        <td>把 mock 数据换成真实接口</td>
+      </tr>
+      <tr>
+        <td>第 4 阶段：联调</td>
+        <td>修复数据接口问题</td>
+        <td>修复模型接口问题</td>
+        <td>修复展示、交互和图表问题</td>
+      </tr>
+      <tr>
+        <td>第 5 阶段：交付</td>
+        <td>整理数据处理说明</td>
+        <td>整理模型方法和结果</td>
+        <td>整理演示页面、截图和汇报材料</td>
+      </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>9. 第一批必须统一的接口格式</h2>
+    <h3>9.1 数据概览</h3>
+    <pre><code>GET /api/data/summary
+
+{
+  "subject_count": 37,
+  "matched_count": 37,
+  "grid4_log_count": 59,
+  "grid9_log_count": 74,
+  "excluded_log_count": 2
+}</code></pre>
+
+    <h3>9.2 被试列表</h3>
+    <pre><code>GET /api/subjects
+
+[
+  {
+    "subject_id": "ATH010001",
+    "MMSE": 25,
+    "MOCA": 25,
+    "CDR_global": 0.5,
+    "CDR_SB": 1,
+    "HIS": 1,
+    "risk_probability": 0.72,
+    "risk_level": "中风险"
+  }
+]</code></pre>
+
+    <h3>9.3 个体详情</h3>
+    <pre><code>GET /api/subjects/ATH010001
+
+{
+  "subject_id": "ATH010001",
+  "scale_scores": {
+    "MMSE": 25,
+    "MOCA": 25,
+    "CDR_global": 0.5,
+    "CDR_SB": 1,
+    "HIS": 1
+  },
+  "vr_summary": {
+    "grid4_success_rate": 0.8,
+    "grid9_success_rate": 0.6,
+    "grid4_wrong_pickup_rate": 0.1,
+    "grid9_wrong_pickup_rate": 0.2,
+    "grid4_map_ratio": 0.15,
+    "grid9_map_ratio": 0.28
+  },
+  "risk": {
+    "probability": 0.72,
+    "score": 72,
+    "level": "中高风险"
+  },
+  "explanations": [
+    "九宫格成功率低于样本均值",
+    "错误接客率较高",
+    "地图查看时间占比较高"
+  ]
+}</code></pre>
+
+    <h3>9.4 相关性结果</h3>
+    <pre><code>GET /api/correlation
+
+[
+  {
+    "target": "MOCA",
+    "feature": "grid4_wrong_pickup_rate",
+    "feature_label": "四宫格错误接客率",
+    "n": 21,
+    "pearson_r": -0.576,
+    "spearman_r": -0.354
+  }
+]</code></pre>
+
+    <h3>9.5 模型指标</h3>
+    <pre><code>GET /api/model/metrics
+
+{
+  "auc": 0.78,
+  "accuracy": 0.73,
+  "sensitivity": 0.80,
+  "specificity": 0.65,
+  "f1": 0.76
+}</code></pre>
+  </section>
+
+  <section>
+    <h2>10. 合并代码规则</h2>
+    <ol class="step-list">
+      <li>每个人只在自己的分支开发。</li>
+      <li>每次提交前先确认项目能运行。</li>
+      <li>小功能完成后提交，不要堆到最后一次性提交。</li>
+      <li>合并到 <code>main</code> 前，先发 Pull Request。</li>
+      <li>至少让另一名成员看一眼再合并。</li>
+      <li>如果改了接口字段，必须提前通知另外两人。</li>
+      <li>不要提交大型原始数据、临时缓存、个人配置文件。</li>
+    </ol>
+
+    <div class="ok">
+      推荐提交频率：每完成一个小功能就提交一次，例如“完成数据概览接口”“完成个体详情页面”“完成模型指标输出”。
+    </div>
+  </section>
+
+  <section>
+    <h2>11. 文件冲突避免规则</h2>
+    <table>
+      <thead>
+      <tr>
+        <th>文件或目录</th>
+        <th>主要负责人</th>
+        <th>其他人规则</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td><code>backend/api/data_api.py</code></td>
+        <td>A</td>
+        <td>B/C 不直接修改，有需求找 A</td>
+      </tr>
+      <tr>
+        <td><code>backend/api/model_api.py</code></td>
+        <td>B</td>
+        <td>A/C 不直接修改，有需求找 B</td>
+      </tr>
+      <tr>
+        <td><code>frontend/src/</code></td>
+        <td>C</td>
+        <td>A/B 只提供接口文档和数据，不直接改页面</td>
+      </tr>
+      <tr>
+        <td><code>backend/schemas.py</code></td>
+        <td>共同约定</td>
+        <td>改动前必须三人同步</td>
+      </tr>
+      <tr>
+        <td><code>README.md</code></td>
+        <td>共同维护</td>
+        <td>每人补充自己模块说明</td>
+      </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>12. 每日同步清单</h2>
+    <p>每天结束前，每个人在群里用 3 句话同步：</p>
+    <pre><code>今天完成：
+遇到的问题：
+明天计划：</code></pre>
+
+    <h3>A 示例</h3>
+    <pre><code>今天完成：四宫格/九宫格日志识别和续存文件合并。
+遇到的问题：有两个空日志，已剔除。
+明天计划：封装 /api/data/summary 接口。</code></pre>
+
+    <h3>B 示例</h3>
+    <pre><code>今天完成：读取 merged_dataset 并生成相关性结果。
+遇到的问题：样本量小，模型需要留一法验证。
+明天计划：输出 model_predictions.csv。</code></pre>
+
+    <h3>C 示例</h3>
+    <pre><code>今天完成：前端路由和数据概览页 mock 展示。
+遇到的问题：个体详情字段还需要和 B 确认。
+明天计划：完成个体评估页布局。</code></pre>
+  </section>
+
+  <section>
+    <h2>13. 最终交付物</h2>
+    <table>
+      <thead>
+      <tr>
+        <th>交付物</th>
+        <th>负责人</th>
+        <th>说明</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td>数据处理后端</td>
+        <td>A</td>
+        <td>完成日志解析、量表匹配、特征提取接口</td>
+      </tr>
+      <tr>
+        <td>算法模型后端</td>
+        <td>B</td>
+        <td>完成相关性分析、模型预测、风险解释接口</td>
+      </tr>
+      <tr>
+        <td>Web 前端</td>
+        <td>C</td>
+        <td>完成页面展示、图表、接口联调</td>
+      </tr>
+      <tr>
+        <td>项目 README</td>
+        <td>A/B/C</td>
+        <td>每人补充自己模块的说明</td>
+      </tr>
+      <tr>
+        <td>汇报 PPT</td>
+        <td>A/B/C</td>
+        <td>A 讲数据，B 讲算法，C 讲系统演示</td>
+      </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>14. 答辩分工表述</h2>
+    <p><strong>A：</strong>负责后端数据处理服务，包括 VR 日志解析、四宫格/九宫格任务识别、续存日志合并、量表文件读取、被试编号匹配、行为特征提取和数据质量接口设计。</p>
+    <p><strong>B：</strong>负责后端认知评估算法服务，包括 VR 行为特征与认知量表的相关性分析、候选特征筛选、认知风险模型训练、模型性能评估和个体风险预测接口。</p>
+    <p><strong>C：</strong>负责 Web 前端与系统集成，包括页面设计、接口调用、数据可视化、个体评估展示、报告导出交互和系统演示。</p>
+  </section>
+
+  <section>
+    <h2>15. 最后提醒</h2>
+    <ul>
+      <li>前端不等后端，先用 mock 数据做页面。</li>
+      <li>后端不等前端，先按约定 JSON 返回数据。</li>
+      <li>算法不等完整系统，先用当前 CSV 训练和输出结果。</li>
+      <li>所有人都不要直接改别人的核心文件。</li>
+      <li>接口字段一旦改变，必须同步另外两人。</li>
+    </ul>
+    <p class="small">建议把本 HTML 文件放在项目根目录，所有成员开发前先阅读一遍。</p>
+  </section>
+</main>
+</body>
+</html>
