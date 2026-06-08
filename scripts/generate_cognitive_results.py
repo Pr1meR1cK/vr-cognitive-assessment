@@ -26,10 +26,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", default="outputs/cognitive_pipeline")
     parser.add_argument("--min-n", type=int, default=10)
     parser.add_argument("--top-k", type=int, default=20)
-    parser.add_argument("--model-top-k", type=int, default=12)
+    parser.add_argument("--model-top-k", type=int, default=5)
     parser.add_argument("--l2", type=float, default=1.0)
     parser.add_argument("--epochs", type=int, default=2500)
     parser.add_argument("--learning-rate", type=float, default=0.05)
+    parser.add_argument(
+        "--feature-set",
+        choices=["all", "core", "selected"],
+        default="selected",
+        help="Candidate feature pool used by analysis and training.",
+    )
     return parser.parse_args()
 
 
@@ -60,6 +66,8 @@ def main() -> None:
             str(args.min_n),
             "--top-k",
             str(args.top_k),
+            "--feature-set",
+            args.feature_set,
         ]
     )
     run_step(
@@ -80,12 +88,30 @@ def main() -> None:
             str(args.epochs),
             "--learning-rate",
             str(args.learning_rate),
+            "--feature-set",
+            args.feature_set,
         ]
     )
 
     df = load_merged_dataset(args.input)
-    model = load_json(model_dir / "moca_risk_model.json")
-    predictions = with_columns(predict_with_saved_model(df, model), PREDICTION_COLUMNS)
+    registry = load_json(model_dir / "model_registry.json")
+    prediction_frames = []
+    for entry in registry.get("models", []):
+        if entry.get("type") != "risk":
+            continue
+        if not entry.get("trained") or not entry.get("enabled_for_user"):
+            continue
+        model = load_json(model_dir / entry["file"])
+        model_predictions = predict_with_saved_model(df, model)
+        if not model_predictions.empty:
+            prediction_frames.append(model_predictions)
+    if prediction_frames:
+        import pandas as pd
+
+        predictions = pd.concat(prediction_frames, ignore_index=True)
+    else:
+        predictions = with_columns(type(df)(), PREDICTION_COLUMNS)
+    predictions = with_columns(predictions, PREDICTION_COLUMNS)
     predictions.to_csv(
         results_dir / "model_predictions.csv", index=False, encoding="utf-8-sig"
     )
@@ -113,9 +139,29 @@ def main() -> None:
         "analysis_dir": str(analysis_dir),
         "model_dir": str(model_dir),
         "results_dir": str(results_dir),
+        "feature_set": args.feature_set,
         "prediction_rows": int(len(predictions)),
-        "model_trained": bool(model.get("trained")),
-        "selected_feature_count": int(len(model.get("selected_features", []))),
+        "model_trained": any(
+            bool(entry.get("trained"))
+            for entry in registry.get("models", [])
+            if entry.get("type") == "risk"
+        ),
+        "enabled_user_model_count": int(
+            sum(
+                1
+                for entry in registry.get("models", [])
+                if entry.get("type") == "risk" and entry.get("enabled_for_user")
+            )
+        ),
+        "selected_feature_count": int(
+            sum(
+                len(load_json(model_dir / entry["file"]).get("selected_features", []))
+                for entry in registry.get("models", [])
+                if entry.get("type") == "risk"
+                and entry.get("trained")
+                and entry.get("enabled_for_user")
+            )
+        ),
         "note": "No fixed manual weights are used. Available models are listed in model_registry.json.",
     }
     save_json(results_dir / "run_summary.json", summary)

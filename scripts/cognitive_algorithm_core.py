@@ -15,6 +15,83 @@ TARGET_COLUMNS = ["MMSE", "MOCA", "CDR_global", "CDR_SB", "HIS"]
 ID_COLUMNS = ["subject_id"]
 REQUIRED_COLUMNS = ID_COLUMNS + TARGET_COLUMNS
 MOCA_RISK_TARGET = "MOCA < 26"
+CORE_FEATURE_SUFFIXES = [
+    "success_rate",
+    "wrong_pickup_rate",
+    "duration",
+    "episode_duration_mean",
+    "success_time_mean",
+    "map_ratio",
+    "path_distance",
+    "speed_mean",
+    "speed_std",
+    "stationary_ratio",
+    "stop_ratio",
+    "pause_ratio",
+    "pause_total_duration",
+    "path_length",
+    "spatial_entropy",
+    "corner_count",
+    "intersection_count",
+    "crossing_count",
+    "direction_change_count",
+    "path_efficiency",
+    "circle_roundness",
+    "circle_closure_error",
+    "center_offset",
+    "number_distribution_balance",
+]
+SELECTED_FEATURE_COLUMNS = [
+    "grid4_success_rate",
+    "grid9_success_rate",
+    "overall_success_rate",
+    "diff_success_rate",
+    "grid4_wrong_pickup_rate",
+    "grid9_wrong_pickup_rate",
+    "overall_wrong_pickup_rate",
+    "diff_wrong_pickup_rate",
+    "grid4_duration",
+    "grid9_duration",
+    "overall_duration",
+    "grid4_map_ratio",
+    "grid9_map_ratio",
+    "overall_map_ratio",
+    "diff_map_ratio",
+    "grid4_path_distance",
+    "grid9_path_distance",
+    "overall_path_distance",
+    "diff_path_distance",
+    "grid4_stop_ratio",
+    "grid9_stop_ratio",
+    "overall_stop_ratio",
+    "diff_stop_ratio",
+    "drawing_moca_trail_crossing_count",
+    "drawing_moca_trail_duration",
+    "drawing_moca_trail_path_efficiency",
+    "drawing_moca_trail_pause_ratio",
+    "drawing_moca_cube_intersection_count",
+    "drawing_moca_clock_circle_roundness",
+    "drawing_moca_clock_center_offset",
+    "drawing_mmse_shape_closed_loop_count",
+]
+
+
+@dataclass(frozen=True)
+class RiskTarget:
+    target: str
+    source_column: str
+    operator: str
+    threshold: float
+    positive_label: str
+
+
+RISK_TARGETS = [
+    RiskTarget("MOCA < 26", "MOCA", "<", 26.0, "moca_cognitive_risk"),
+    RiskTarget("MMSE < 27", "MMSE", "<", 27.0, "mmse_abnormal_risk"),
+    RiskTarget("CDR_global >= 0.5", "CDR_global", ">=", 0.5, "cdr_global_risk"),
+    RiskTarget("CDR_SB >= 0.5", "CDR_SB", ">=", 0.5, "cdr_sb_risk"),
+    RiskTarget("HIS >= 4", "HIS", ">=", 4.0, "his_vascular_risk"),
+]
 
 CORRELATION_COLUMNS = [
     "target",
@@ -38,6 +115,14 @@ TWO_FEATURE_COLUMNS = [
 ]
 PREDICTION_COLUMNS = [
     "subject_id",
+    "target",
+    "source_score",
+    "true_label",
+    "probability",
+    "score",
+    "level",
+    "predicted_label",
+    "selected_features",
     "MOCA",
     "true_moca_risk",
     "risk_probability",
@@ -83,7 +168,7 @@ REGRESSION_METRIC_COLUMNS = [
 class TrainingConfig:
     min_n: int = 10
     top_k: int = 20
-    model_top_k: int = 12
+    model_top_k: int = 5
     l2: float = 1.0
     epochs: int = 2500
     learning_rate: float = 0.05
@@ -117,15 +202,36 @@ def with_columns(df: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
     return df
 
 
-def candidate_feature_columns(df: pd.DataFrame) -> list[str]:
+def candidate_feature_columns(df: pd.DataFrame, feature_set: str = "selected") -> list[str]:
+    if feature_set not in {"all", "core", "selected"}:
+        raise ValueError("feature_set must be one of: all, core, selected")
     excluded = set(ID_COLUMNS + TARGET_COLUMNS)
     cols: list[str] = []
     for col in df.columns:
         if col in excluded:
             continue
+        if feature_set == "selected" and col not in SELECTED_FEATURE_COLUMNS:
+            continue
+        if feature_set == "core" and not is_core_feature(col):
+            continue
         if pd.api.types.is_numeric_dtype(df[col]) and df[col].nunique(dropna=True) >= 2:
             cols.append(col)
     return cols
+
+
+def is_core_feature(column: str) -> bool:
+    if column.startswith("diff_"):
+        return True
+    return any(column.endswith(suffix) for suffix in CORE_FEATURE_SUFFIXES)
+
+
+def risk_target_values(df: pd.DataFrame, risk_target: RiskTarget) -> pd.Series:
+    source = df[risk_target.source_column]
+    if risk_target.operator == "<":
+        return (source < risk_target.threshold).astype(int)
+    if risk_target.operator == ">=":
+        return (source >= risk_target.threshold).astype(int)
+    raise ValueError(f"Unsupported risk target operator: {risk_target.operator}")
 
 
 def pearson_corr(x: pd.Series, y: pd.Series) -> float:
@@ -290,14 +396,16 @@ def auc_score(y_true: np.ndarray, scores: np.ndarray) -> float:
     return (rank_sum_pos - n_pos * (n_pos + 1) / 2) / (n_pos * n_neg)
 
 
-def classification_metrics(y_true: np.ndarray, scores: np.ndarray) -> dict[str, float]:
+def classification_metrics(
+    y_true: np.ndarray, scores: np.ndarray, target: str = MOCA_RISK_TARGET
+) -> dict[str, float | str]:
     pred = (scores >= 0.5).astype(int)
     tp = int(np.sum((pred == 1) & (y_true == 1)))
     tn = int(np.sum((pred == 0) & (y_true == 0)))
     fp = int(np.sum((pred == 1) & (y_true == 0)))
     fn = int(np.sum((pred == 0) & (y_true == 1)))
     return {
-        "target": MOCA_RISK_TARGET,
+        "target": target,
         "model": "Logistic Regression with L2",
         "validation": "LOOCV",
         "n": float(len(y_true)),
@@ -461,7 +569,8 @@ def predict_with_saved_model(df: pd.DataFrame, model: dict[str, Any]) -> pd.Data
     if missing:
         raise ValueError("Prediction dataset is missing model features: " + ", ".join(missing))
 
-    model_df = df[df["MOCA"].notna()].reset_index(drop=True)
+    source_column = model.get("source_column", "MOCA")
+    model_df = df[df[source_column].notna()].reset_index(drop=True)
     means = np.array(model["feature_means"], dtype=float)
     stds = np.array(model["feature_stds"], dtype=float)
     weights = np.array(model["weights"], dtype=float)
@@ -471,17 +580,41 @@ def predict_with_saved_model(df: pd.DataFrame, model: dict[str, Any]) -> pd.Data
     rows = []
     for idx, probability in enumerate(probabilities):
         row = model_df.loc[idx]
+        source_score = float(row[source_column])
+        if "operator" in model and "threshold" in model:
+            risk_target = RiskTarget(
+                str(model.get("target", MOCA_RISK_TARGET)),
+                source_column,
+                str(model["operator"]),
+                float(model["threshold"]),
+                str(model.get("positive_label", "")),
+            )
+            true_label = int(risk_target_values(pd.DataFrame([row]), risk_target).iloc[0])
+        else:
+            true_label = int(row["MOCA"] < 26)
+        out = {
+            "subject_id": row["subject_id"],
+            "target": model.get("target", MOCA_RISK_TARGET),
+            "source_score": source_score,
+            "true_label": true_label,
+            "probability": float(probability),
+            "score": round(float(probability) * 100, 2),
+            "level": risk_level(float(probability)),
+            "predicted_label": int(probability >= 0.5),
+            "selected_features": ";".join(selected),
+        }
+        if model.get("target", MOCA_RISK_TARGET) == MOCA_RISK_TARGET:
+            out.update(
+                {
+                    "MOCA": source_score,
+                    "true_moca_risk": true_label,
+                    "risk_probability": float(probability),
+                    "risk_score": round(float(probability) * 100, 2),
+                    "risk_level": risk_level(float(probability)),
+                }
+            )
         rows.append(
-            {
-                "subject_id": row["subject_id"],
-                "MOCA": float(row["MOCA"]),
-                "true_moca_risk": int(row["MOCA"] < 26),
-                "risk_probability": float(probability),
-                "risk_score": round(float(probability) * 100, 2),
-                "risk_level": risk_level(float(probability)),
-                "predicted_label": int(probability >= 0.5),
-                "selected_features": ";".join(selected),
-            }
+            out
         )
     return pd.DataFrame(rows)
 
@@ -499,25 +632,45 @@ def write_subject_risk_json(predictions: pd.DataFrame, output_dir: str | Path) -
         return
     risk_dir = Path(output_dir) / "subject_risk"
     risk_dir.mkdir(parents=True, exist_ok=True)
-    for _, row in predictions.iterrows():
+    for subject_id, subject_rows in predictions.groupby("subject_id", sort=True):
+        risks = []
+        for _, row in subject_rows.iterrows():
+            risks.append(
+                {
+                    "target": row.get("target", MOCA_RISK_TARGET),
+                    "probability": float(row.get("probability", row.get("risk_probability"))),
+                    "score": float(row.get("score", row.get("risk_score"))),
+                    "level": row.get("level", row.get("risk_level")),
+                    "predicted_label": int(row.get("predicted_label")),
+                    "source_score": float(row.get("source_score", row.get("MOCA", math.nan))),
+                    "true_label": int(row.get("true_label", row.get("true_moca_risk", 0))),
+                }
+            )
+        primary = risks[0]
         payload = {
-            "subject_id": row["subject_id"],
+            "subject_id": subject_id,
             "risk": {
-                "probability": float(row["risk_probability"]),
-                "score": float(row["risk_score"]),
-                "level": row["risk_level"],
+                "probability": primary["probability"],
+                "score": primary["score"],
+                "level": primary["level"],
             },
+            "risks": risks,
             "model_basis": {
-                "target": MOCA_RISK_TARGET,
+                "target": primary["target"],
                 "model": "Logistic Regression with L2",
                 "validation": "saved_model_prediction",
                 "note": "探索性风险评估，不代表临床诊断。",
             },
-            "selected_features": str(row["selected_features"]).split(";")
-            if row.get("selected_features")
-            else [],
+            "selected_features": sorted(
+                {
+                    feature
+                    for _, row in subject_rows.iterrows()
+                    for feature in str(row.get("selected_features", "")).split(";")
+                    if feature
+                }
+            ),
         }
-        save_json(risk_dir / f"{row['subject_id']}.json", payload)
+        save_json(risk_dir / f"{subject_id}.json", payload)
 
 
 # The functions below power the user-facing prediction flow. They keep model
@@ -650,6 +803,155 @@ def train_moca_risk_model(
     model["target"] = MOCA_RISK_TARGET
     model["note"] = USER_REPORT_NOTE
     return model
+
+
+def loocv_risk_model(
+    df: pd.DataFrame,
+    feature_cols: list[str],
+    risk_target: RiskTarget,
+    config: TrainingConfig,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    model_df = df[df[risk_target.source_column].notna()].reset_index(drop=True)
+    if len(model_df) < max(8, config.min_n):
+        return pd.DataFrame(), pd.DataFrame()
+    y_all = risk_target_values(model_df, risk_target)
+    if y_all.nunique() < 2:
+        return pd.DataFrame(), pd.DataFrame()
+
+    predictions: list[dict[str, Any]] = []
+    selected_counts: dict[str, int] = {}
+    for test_idx in range(len(model_df)):
+        train_mask = np.ones(len(model_df), dtype=bool)
+        train_mask[test_idx] = False
+        train_df = model_df.loc[train_mask].reset_index(drop=True)
+        test_df = model_df.loc[[test_idx]].reset_index(drop=True)
+        y_train = risk_target_values(train_df, risk_target)
+        selected = select_features_for_target(
+            train_df,
+            feature_cols,
+            y_train,
+            config.model_top_k,
+            min_n=max(3, config.min_n - 1),
+        )
+        if not selected:
+            continue
+        for feature in selected:
+            selected_counts[feature] = selected_counts.get(feature, 0) + 1
+        x_train, means, stds = standardize_fit(train_df[selected].to_numpy(dtype=float))
+        x_test = standardize_apply(test_df[selected].to_numpy(dtype=float), means, stds)
+        intercept, weights = train_logistic_l2(
+            x_train,
+            y_train.to_numpy(dtype=float),
+            l2=config.l2,
+            learning_rate=config.learning_rate,
+            epochs=config.epochs,
+        )
+        probability = float(sigmoid(intercept + x_test @ weights)[0])
+        source_score = float(test_df.loc[0, risk_target.source_column])
+        true_label = int(risk_target_values(test_df, risk_target).iloc[0])
+        row = {
+            "subject_id": test_df.loc[0, "subject_id"],
+            "target": risk_target.target,
+            "source_score": source_score,
+            "true_label": true_label,
+            "probability": probability,
+            "score": round(probability * 100, 2),
+            "level": risk_level(probability),
+            "predicted_label": int(probability >= 0.5),
+            "selected_features": ";".join(selected),
+        }
+        if risk_target.target == MOCA_RISK_TARGET:
+            row.update(
+                {
+                    "MOCA": source_score,
+                    "true_moca_risk": true_label,
+                    "risk_probability": probability,
+                    "risk_score": round(probability * 100, 2),
+                    "risk_level": risk_level(probability),
+                }
+            )
+        predictions.append(row)
+
+    pred_df = pd.DataFrame(predictions)
+    freq_df = pd.DataFrame(
+        [
+            {
+                "target": risk_target.target,
+                "feature": feature,
+                "selected_in_loocv_folds": count,
+            }
+            for feature, count in selected_counts.items()
+        ]
+    )
+    if not freq_df.empty:
+        freq_df = freq_df.sort_values(
+            ["target", "selected_in_loocv_folds"], ascending=[True, False]
+        )
+    return pred_df, freq_df
+
+
+def train_risk_model(
+    df: pd.DataFrame,
+    feature_cols: list[str],
+    risk_target: RiskTarget,
+    config: TrainingConfig,
+) -> dict[str, Any]:
+    model_df = df[df[risk_target.source_column].notna()].reset_index(drop=True)
+    if len(model_df) < max(8, config.min_n):
+        return {
+            "trained": False,
+            "target": risk_target.target,
+            "type": "risk",
+            "reason": "not_enough_samples",
+        }
+    y = risk_target_values(model_df, risk_target)
+    if y.nunique() < 2:
+        return {
+            "trained": False,
+            "target": risk_target.target,
+            "type": "risk",
+            "reason": "target_has_single_class",
+        }
+
+    selected = select_features_for_target(
+        model_df, feature_cols, y, config.model_top_k, min_n=config.min_n
+    )
+    if not selected:
+        return {
+            "trained": False,
+            "target": risk_target.target,
+            "type": "risk",
+            "reason": "no_reliable_features",
+        }
+
+    x_train, means, stds = standardize_fit(model_df[selected].to_numpy(dtype=float))
+    intercept, weights = train_logistic_l2(
+        x_train,
+        y.to_numpy(dtype=float),
+        l2=config.l2,
+        learning_rate=config.learning_rate,
+        epochs=config.epochs,
+    )
+    return {
+        "trained": True,
+        "target": risk_target.target,
+        "type": "risk",
+        "source_column": risk_target.source_column,
+        "operator": risk_target.operator,
+        "threshold": risk_target.threshold,
+        "positive_label": risk_target.positive_label,
+        "model": "Logistic Regression with L2",
+        "selected_features": selected,
+        "intercept": float(intercept),
+        "weights": [float(v) for v in weights],
+        "feature_means": [float(v) for v in means],
+        "feature_stds": [float(v) for v in stds],
+        "config": config.__dict__,
+        "training_rows": int(len(model_df)),
+        "positive_count": int(np.sum(y == 1)),
+        "negative_count": int(np.sum(y == 0)),
+        "note": USER_REPORT_NOTE,
+    }
 
 
 def predict_user_with_model(
@@ -850,22 +1152,42 @@ def write_subject_risk_json(predictions: pd.DataFrame, output_dir: str | Path) -
         return
     risk_dir = Path(output_dir) / "subject_risk"
     risk_dir.mkdir(parents=True, exist_ok=True)
-    for _, row in predictions.iterrows():
+    for subject_id, subject_rows in predictions.groupby("subject_id", sort=True):
+        risks = []
+        for _, row in subject_rows.iterrows():
+            risks.append(
+                {
+                    "target": row.get("target", MOCA_RISK_TARGET),
+                    "probability": float(row.get("probability", row.get("risk_probability"))),
+                    "score": float(row.get("score", row.get("risk_score"))),
+                    "level": row.get("level", row.get("risk_level")),
+                    "predicted_label": int(row.get("predicted_label")),
+                    "source_score": float(row.get("source_score", row.get("MOCA", math.nan))),
+                    "true_label": int(row.get("true_label", row.get("true_moca_risk", 0))),
+                }
+            )
+        primary = risks[0]
         payload = {
-            "subject_id": row["subject_id"],
+            "subject_id": subject_id,
             "risk": {
-                "probability": float(row["risk_probability"]),
-                "score": float(row["risk_score"]),
-                "level": row["risk_level"],
+                "probability": primary["probability"],
+                "score": primary["score"],
+                "level": primary["level"],
             },
+            "risks": risks,
             "model_basis": {
-                "target": MOCA_RISK_TARGET,
+                "target": primary["target"],
                 "model": "Logistic Regression with L2",
                 "validation": "saved_model_prediction",
                 "note": USER_REPORT_NOTE,
             },
-            "selected_features": str(row["selected_features"]).split(";")
-            if row.get("selected_features")
-            else [],
+            "selected_features": sorted(
+                {
+                    feature
+                    for _, row in subject_rows.iterrows()
+                    for feature in str(row.get("selected_features", "")).split(";")
+                    if feature
+                }
+            ),
         }
-        save_json(risk_dir / f"{row['subject_id']}.json", payload)
+        save_json(risk_dir / f"{subject_id}.json", payload)

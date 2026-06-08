@@ -97,6 +97,7 @@ def build_subject_payloads(results_dir: Path, output_dir: Path) -> list[dict[str
         report = {
             "subject_id": subject_id,
             "risk": risk_payload.get("risk"),
+            "risks": risk_payload.get("risks", []),
             "prediction": prediction,
             "model_basis": risk_payload.get("model_basis"),
             "selected_features": risk_payload.get("selected_features", []),
