@@ -48,7 +48,7 @@ export default function ModelMetrics() {
         <div className="card">
           <div className="card-title">📊 模型指标（%）</div>
           <div style={{ height: 320 }}>
-            <ResponsiveContainer>
+            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
               <RadarChart data={metricsRadar}>
                 <PolarGrid />
                 <PolarAngleAxis dataKey="name" fontSize={13} />
@@ -69,7 +69,7 @@ export default function ModelMetrics() {
         <div className="card">
           <div className="card-title">⚖️ 特征权重（Coefficient）</div>
           <div style={{ height: 320 }}>
-            <ResponsiveContainer>
+            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
               <BarChart
                 data={data.feature_importance}
                 layout="vertical"
@@ -84,7 +84,10 @@ export default function ModelMetrics() {
                   width={110}
                 />
                 <Tooltip
-                  formatter={(value: number) => [value.toFixed(2), '系数']}
+                  formatter={(value: unknown) => [
+                    Number(value ?? 0).toFixed(2),
+                    '系数',
+                  ]}
                 />
                 <Bar
                   dataKey="coefficient"

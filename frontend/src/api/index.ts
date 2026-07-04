@@ -19,11 +19,11 @@ import mockSubjectDetail from '../mock/subject_detail.json';
 import mockCorrelation from '../mock/correlation.json';
 import mockModelMetrics from '../mock/model_metrics.json';
 
-// 切换开关：true = 使用 mock，false = 调用真实接口
-const USE_MOCK = true;
+// 切换开关：VITE_USE_MOCK=true 时使用本地 mock；默认请求真实后端
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 
-// 后端基础地址（联调时改为真实地址）
-const BASE_URL = 'http://localhost:8000';
+// 后端基础地址
+const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
 
 // ========================================
 // 通用 fetch 封装
@@ -64,7 +64,7 @@ function as<T>(data: unknown): Promise<T> {
 }
 
 // ========================================
-// 接口方法（按 PROEJCT_ONBOARDING 约定）
+// 接口方法（按 PROJECT_ONBOARDING 约定）
 // ========================================
 
 /** 数据概览 */

@@ -51,7 +51,7 @@ export default function Correlation() {
       <div className="card">
         <div className="card-title">📈 显著相关特征（Pearson r）</div>
         <div style={{ height: scatterData.length * 36 + 60, minHeight: 250 }}>
-          <ResponsiveContainer>
+          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <ScatterChart
               margin={{ top: 10, right: 30, bottom: 10, left: 160 }}
             >
@@ -71,9 +71,11 @@ export default function Correlation() {
               />
               <ZAxis type="number" dataKey="z" range={[40, 120]} />
               <Tooltip
-                formatter={(value: number, name: string) => {
-                  if (name === 'Pearson r') return [value.toFixed(3), name];
-                  return [value, name];
+                formatter={(value: unknown, name: unknown) => {
+                  const label = String(name);
+                  const numericValue = Number(value ?? 0);
+                  if (label === 'Pearson r') return [numericValue.toFixed(3), label];
+                  return [String(value ?? ''), label];
                 }}
                 content={({ payload }) => {
                   if (!payload || payload.length === 0) return null;

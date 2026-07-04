@@ -82,7 +82,7 @@ export default function SubjectDetail() {
       <div className="card">
         <div className="card-title">📋 传统量表分数</div>
         <div style={{ height: 250 }}>
-          <ResponsiveContainer>
+          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <BarChart data={scaleData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
@@ -98,7 +98,7 @@ export default function SubjectDetail() {
       <div className="card">
         <div className="card-title">🎯 四宫格 vs 九宫格 行为对比</div>
         <div style={{ height: 350 }}>
-          <ResponsiveContainer>
+          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <RadarChart data={radarData}>
               <PolarGrid />
               <PolarAngleAxis dataKey="name" fontSize={12} />

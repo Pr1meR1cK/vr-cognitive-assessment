@@ -23,6 +23,14 @@ env/
 .DS_Store
 Thumbs.db
 
+# Office temporary and render QA artifacts
+~$*.docx
+~$*.pptx
+.~*.docx
+.~*.pptx
+*.pptx.inspect.ndjson
+结题汇报完整版-前端整合*/
+
 # Jupyter
 .ipynb_checkpoints/
 

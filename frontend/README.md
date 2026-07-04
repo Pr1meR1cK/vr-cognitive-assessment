@@ -64,14 +64,41 @@ frontend/src/
 | `/model` | 模型评估 | 指标雷达图 + 特征权重图 |
 | `/import` | 数据导入 | 等待 A 实现接口 |
 
+## 前后端联调
+
+默认请求真实后端：
+
+```bash
+# 终端 1：启动后端
+cd ../backend
+python3 -m uvicorn app.main:app --reload --port 8000
+
+# 终端 2：启动前端
+cd ../frontend
+npm run dev
+```
+
+前端默认连接：
+
+```text
+http://localhost:8000
+```
+
+如需改后端地址，可在启动前设置：
+
+```bash
+VITE_API_BASE_URL=http://localhost:8000 npm run dev
+```
+
 ## Mock 数据模式
 
-当前 `src/api/index.ts` 中 `USE_MOCK = true`，所有接口返回本地 mock 数据。
+当前 `src/api/index.ts` 支持通过环境变量切换 mock。
 
-联调时只需：
-1. 将 `USE_MOCK` 改为 `false`
-2. 修改 `BASE_URL` 为实际后端地址
-3. 无需改动任何页面代码
+```bash
+VITE_USE_MOCK=true npm run dev
+```
+
+页面代码无需改动。
 
 ## 接口约定
 
