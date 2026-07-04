@@ -48,9 +48,25 @@ Thumbs.db
 # Data (large files)
 exe_release_*/
 MMSE_MoCA/
+A_data/
+*.xlsx
+*.xls
+*.pdf
 
 # Outputs
 outputs/
+trained_models/
+model_registry.json
+*_model.json
+*_predictions.csv
+*_metrics.csv
+correlations*.csv
+two_feature_analysis.csv
+subject_risk/
+user_prediction.json
+user_report.html
+mock_*_dataset.csv
+interim_merged_dataset.csv
 
 # Node (frontend)
 node_modules/

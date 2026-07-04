@@ -1,339 +1,217 @@
 # 基于 VR 接客任务的认知评估系统
 
-本项目用于探索被试在虚拟现实（VR）社区接客任务中的行为表现与传统认知量表之间的关系，并进一步构建一个辅助认知评估系统。
+本项目计划构建一个 Web 版认知评估系统，用于读取被试在 VR 四宫格/九宫格社区接客任务中的行为日志，并结合 MMSE、MoCA、CDR、HIS 量表结果，完成特征提取、相关性分析、风险建模、个体评估展示和报告导出。
 
-当前阶段重点完成：
+## 当前状态
 
-- 解析 VR 行为日志
-- 识别四宫格、九宫格任务
-- 合并同一任务的续存日志
-- 提取被试级 VR 行为特征
-- 匹配 MMSE、MoCA、CDR、HIS 等量表结果
-- 计算 VR 行为指标与量表分数之间的相关性
+当前仓库提交的是 **算法代码、接口契约和演示流程**，不提交原始数据、训练结果、模型文件或临时数据集。
 
-## 1. 系统目标
-
-本系统的目标是：
-
-> 基于被试在 VR 社区接客任务中的行为数据，提取能够反映空间导航、任务执行、注意控制和驾驶稳定性的行为特征，并与传统认知量表建立关联，最终形成认知风险评估模型和个体化解释报告。
-
-系统未来可以输出：
-
-- 认知风险评分
-- MoCA / MMSE 风险预测
-- CDR 风险倾向
-- 四宫格与九宫格任务表现对比
-- 关键异常行为解释
-
-## 2. 数据结构
-
-当前项目目录主要包括：
+已具备：
 
 ```text
-exe_release_20260415/
-  log/
-    ATH010001VR/
-      九宫格..._log_1.log
-      四宫格..._log_1.log
-      四宫格..._log_2.log
-    ATH010002VR/
-      ...
-
-MMSE_MoCA/
-  _____ATHENA010001_____.xlsx
-  _____ATHENA010002_____.xlsx
-  ...
+README 与项目说明
+B 算法流程脚本
+C 前端静态接口 JSON 生成脚本
+mock 完整演示流程
+算法/接口文档
 ```
 
-其中：
-
-- `exe_release_20260415/log` 存放 VR 行为日志
-- 每个被试对应一个文件夹，例如 `ATH010001VR`
-- `MMSE_MoCA` 存放量表 Excel 文件
-- 每个量表文件对应一个被试，例如 `_____ATHENA010001_____.xlsx`
-
-被试编号会自动标准化：
+尚需 A 接入：
 
 ```text
-ATH010001VR              -> ATH010001
-_____ATHENA010001_____.xlsx -> ATH010001
+VR log 解析
+四宫格/九宫格任务识别
+_log_1/_log_2/_log_3 续存日志合并
+grid4_*/grid9_*/overall_*/diff_* 特征提取
+最终 merged_dataset.csv 输出
 ```
 
-## 3. 四宫格与九宫格任务理解
+## 三人分工
 
-VR 任务包括两类社区接客场景：
-
-- 四宫格 / 田字格：较简单的社区结构
-- 九宫格：较复杂的社区结构
-
-两类任务本质上都是在 VR 社区中开车接客，但空间复杂度不同。
-
-因此当前分析会分别生成：
+A：数据处理负责人
 
 ```text
-grid4_*     四宫格任务特征
-grid9_*     九宫格任务特征
-overall_*   所有有效 VR 任务的总体特征
+负责 VR 原始日志解析、任务类型识别、续存日志合并、量表读取、被试 ID 匹配、VR 行为特征提取，以及最终 merged_dataset.csv 输出。
 ```
 
-## 4. 续存日志处理
-
-部分日志文件名中包含 `_log_1`、`_log_2` 等编号。
-
-这些文件不是独立任务，而是同一次任务过程中因文件大小或存储机制产生的续存日志。
-
-当前脚本的处理方式是：
-
-1. 按日志时间顺序读取文件
-2. 优先根据文件名判断四宫格或九宫格
-3. 如果文件名无法判断，则读取日志内部实验配置
-4. 如果续存文件内部没有实验配置，则继承前一个已知任务类型
-5. 同一被试、同一任务类型的日志合并后再提取特征
-
-无法识别且为空的日志会被剔除，不进入特征计算。
-
-## 5. 已提取的 VR 行为特征
-
-当前已提取的特征主要包括以下几类。
-
-任务表现类：
+B：算法模型负责人
 
 ```text
-success_rate
-count_ep_success
-count_ep_fail
-count_ep_timeout
-count_pickup_ok
-count_pickup_wrong
-wrong_pickup_rate
+负责相关性分析、双特征组合分析、多量表候选模型、MoCA<26 风险模型、LOOCV 验证、模型注册表、用户预测报告和前端接口数据。
 ```
 
-时间效率类：
+C：前端与系统集成负责人
 
 ```text
-duration
-episode_duration_mean
-episode_duration_std
-success_time_mean
-fail_time_mean
+负责 Web 前端、接口调用、图表展示、个体评估页、报告展示/导出和系统演示。
 ```
 
-导航与地图类：
+## 数据约定
+
+正式训练输入为：
 
 ```text
-count_map_on
-map_view_duration
-map_count_per_min
-map_ratio
-path_distance
-count_zone_enter
-count_zone_exit
+merged_dataset.csv
 ```
 
-驾驶控制类：
+必须包含：
 
 ```text
-speed_mean
-speed_std
-speed_max
-stationary_ratio
-count_brake_on
-brake_count_per_min
-throttle_mean
-abs_steer_mean
-abs_steer_std
-```
-
-注意与停车类：
-
-```text
-count_att_start
-count_att_reset
-count_stop_start
-stop_duration
-stop_ratio
-```
-
-## 6. 量表数据
-
-当前读取的量表包括：
-
-```text
+subject_id
 MMSE
 MOCA
-HIS
 CDR_global
 CDR_SB
+HIS
 ```
 
-其中：
-
-- MMSE：简易精神状态检查量表
-- MoCA：蒙特利尔认知评估量表
-- CDR：临床痴呆评定
-- HIS：Hachinski 缺血评分
-
-## 7. 当前已实现脚本
-
-### 7.1 相关性分析脚本
-
-脚本路径：
+其余数值列会自动作为候选特征，包括：
 
 ```text
-scripts/analyze_vr_scale_correlation.py
+grid4_*
+grid9_*
+overall_*
+diff_*
+drawing_*
 ```
 
-运行方式：
+用户预测阶段输入为 A 提取好的单人特征 JSON：
+
+```json
+{
+  "subject_id": "ATH010002",
+  "features": {
+    "grid4_success_rate": 0.82,
+    "grid9_success_rate": 0.61,
+    "diff_success_rate": -0.21
+  }
+}
+```
+
+## B 算法脚本
+
+核心脚本位于：
+
+```text
+scripts/
+```
+
+主要文件：
+
+```text
+cognitive_algorithm_core.py
+run_cognitive_analysis.py
+train_cognitive_model.py
+generate_cognitive_results.py
+predict_user_from_features.py
+build_interim_merged_dataset.py
+build_mock_full_dataset.py
+build_frontend_api_payloads.py
+```
+
+说明：
+
+```text
+cognitive_algorithm_core.py       核心算法函数
+run_cognitive_analysis.py         相关性和双特征组合分析
+train_cognitive_model.py          多量表模型训练和模型注册表生成
+generate_cognitive_results.py     完整 B 结果流程
+predict_user_from_features.py     用户单人特征预测报告
+build_interim_merged_dataset.py   临时合并量表与 drawing_* 特征
+build_mock_full_dataset.py        生成 mock VR 特征用于演示
+build_frontend_api_payloads.py    生成 C 前端静态 JSON 接口
+```
+
+## 模型策略
+
+训练阶段会尝试生成：
+
+```text
+MMSE 分数模型
+MOCA 分数模型
+CDR_global 分数模型
+CDR_SB 分数模型
+HIS 分数模型
+MOCA < 26 风险模型
+```
+
+模型是否进入用户报告由 `model_registry.json` 控制：
+
+```text
+trained           模型是否训练成功
+enabled_for_user  是否允许展示给用户
+quality_note      启用或暂不启用的原因
+```
+
+当前不设置人工固定权重。模型结果来自训练数据和 LOOCV 验证。
+
+## C 前端接口
+
+B 先提供静态 JSON 接口，后续可由 FastAPI 返回同样结构。
+
+生成命令示例：
 
 ```powershell
-& 'C:\Users\Administrator\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' scripts\analyze_vr_scale_correlation.py
+python scripts/build_frontend_api_payloads.py --results-dir outputs/cognitive_pipeline_mock_full/results --output-dir outputs/frontend_api_mock_full
 ```
 
-输出目录：
+接口文件：
 
 ```text
-outputs/correlation_analysis/
+index.json
+correlations.json
+models.json
+two_feature_analysis.json
+subjects.json
+subjects/{subject_id}.json
+run_summary.json
 ```
 
-主要输出文件：
+接口说明见：
 
 ```text
-scale_scores.csv
-vr_features.csv
-log_manifest.csv
-merged_dataset.csv
-correlations.csv
-correlations_reliable_n10.csv
-correlation_analysis_*.xlsx
+docs/C_FRONTEND_API_CONTRACT.md
 ```
 
-其中：
+## Mock 演示流程
 
-- `scale_scores.csv`：每名被试的量表分数
-- `vr_features.csv`：每名被试的 VR 行为特征
-- `log_manifest.csv`：每个原始日志文件的任务归类结果
-- `merged_dataset.csv`：VR 特征与量表合并后的总表
-- `correlations.csv`：所有相关性结果
-- `correlations_reliable_n10.csv`：有效样本数不少于 10 的相关性结果
-- `correlation_analysis_*.xlsx`：上述结果的 Excel 汇总版本
+在 A 的真实 VR 特征尚未完成前，可以用 mock VR 特征跑通完整流程：
 
-## 8. 当前分析结果概况
+```powershell
+python scripts/build_interim_merged_dataset.py --output outputs/interim_merged_dataset.csv
+python scripts/build_mock_full_dataset.py --input outputs/interim_merged_dataset.csv --output outputs/mock_full_merged_dataset.csv
+python scripts/generate_cognitive_results.py --input outputs/mock_full_merged_dataset.csv --output-dir outputs/cognitive_pipeline_mock_full --epochs 500
+python scripts/build_frontend_api_payloads.py --results-dir outputs/cognitive_pipeline_mock_full/results --output-dir outputs/frontend_api_mock_full
+```
 
-当前有效数据：
+用户预测报告示例：
+
+```powershell
+python scripts/predict_user_from_features.py --features outputs/mock_user_upload/ATH010002_features.json --model-dir outputs/cognitive_pipeline_mock_full/model --output-dir outputs/user_prediction_mock_full
+```
+
+完整说明见：
 
 ```text
-量表被试：37 人
-VR 被试：37 人
-匹配成功：37 人
-有效 VR 日志：133 个
-九宫格日志：74 个
-四宫格日志：59 个
+docs/MOCK_FULL_DEMO_FLOW.md
 ```
 
-初步结果显示，VR 行为数据中较有价值的认知相关信号主要来自：
+注意：mock VR 特征仅用于联调、演示和页面开发，不代表真实模型结论。
 
-- 任务成功率
-- 超时次数
-- 错误接客率
-- 路径距离
-- 地图查看占比
-- 停车比例
-- 速度与驾驶控制稳定性
+## 不提交的内容
 
-其中：
-
-- MMSE 相关指标更偏向路径距离、地图占比、完成时间波动
-- MoCA 相关指标更偏向错误接客率、速度、地图依赖
-- CDR 相关指标更偏向任务成功率、超时和正确接客次数
-- HIS 相关指标更偏向九宫格停车比例和失败时间波动
-
-## 9. 后续建模思路
-
-相关性分析不是最终模型，而是模型训练前的特征筛选和解释依据。
-
-推荐后续按以下路线实现认知评估模型：
+以下内容不应提交到 GitHub：
 
 ```text
-VR日志
-  -> 行为特征提取
-  -> 量表匹配
-  -> 相关性分析
-  -> 候选特征筛选
-  -> 小样本模型训练
-  -> 个体风险预测
-  -> 解释报告生成
+原始 VR log
+MMSE_MoCA 原始 Excel
+A_data
+outputs
+训练好的模型 JSON
+模型指标 CSV
+预测结果 CSV/JSON
+mock/interim 数据集 CSV
+用户报告 HTML
 ```
 
-第一版建议训练小模型：
-
-```text
-目标：预测 MoCA < 26
-模型：逻辑回归 / Ridge / Lasso
-验证：留一法交叉验证
-输出：认知风险概率
-```
-
-原因：
-
-- 当前样本量较小，只有 37 人
-- MoCA 对轻度认知下降较敏感
-- 小模型更容易解释，也更适合课题展示
-
-## 10. 系统最终形态
-
-完整系统可以分为以下模块：
-
-```text
-数据导入模块
-  - 读取 VR 日志
-  - 读取量表文件
-  - 自动匹配被试编号
-
-特征提取模块
-  - 四宫格行为特征
-  - 九宫格行为特征
-  - 总体行为特征
-  - 后续可加入九宫格-四宫格复杂度差异特征
-
-统计分析模块
-  - 相关性分析
-  - 特征筛选
-  - 群体趋势分析
-
-模型训练模块
-  - MoCA 风险模型
-  - MMSE 分数预测模型
-  - CDR 风险模型
-  - 综合认知风险模型
-
-评估报告模块
-  - 个体风险评分
-  - 关键异常指标解释
-  - Excel / PDF 报告导出
-```
-
-最终输出示例：
-
-```text
-被试编号：ATH010001
-认知风险概率：0.72
-风险等级：中高风险
-
-主要依据：
-1. 九宫格任务成功率偏低
-2. 错误接客率偏高
-3. 地图查看时间占比较高
-4. 停车比例高于样本均值
-5. 九宫格相较四宫格表现下降明显
-```
-
-## 11. 后续建议
-
-建议下一步继续实现：
-
-1. 增加九宫格与四宫格的复杂度差异特征
-2. 基于相关性和认知解释筛选候选特征
-3. 训练第一版 MoCA 风险小模型
-4. 输出每名被试的风险概率和解释性指标
-5. 生成个体化评估报告
-
+这些文件属于本地数据或运行产物。仓库只保留代码、文档和接口契约。
